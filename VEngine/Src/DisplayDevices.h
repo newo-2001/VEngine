@@ -1,10 +1,11 @@
 #pragma once
 #include <string>
+#include <vector>
 
-struct Edid
+struct DisplayDevice
 {
     std::string Manufacturer;
     std::string DisplayName;
 };
 
-void DecodeEdid(const char* data, size_t length, Edid& edid);
+std::vector<DisplayDevice> GetDisplayDevices();
