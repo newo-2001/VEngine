@@ -7,30 +7,30 @@
 #include "DisplayDevices.h"
 #include <objbase.h>
 
-void initialize()
+void Initialize()
 {
     HRESULT result = CoInitialize(NULL);
 }
 
-void uninitialize()
+void Uninitialize()
 {
     CoUninitialize();
 }
 
-void run()
+void Run()
 {
     std::cout << "Detected display devices:" << std::endl;
-    std::vector<DisplayDevice> displayDevices = GetDisplayDevices();
-    for (DisplayDevice& device : displayDevices)
+    DisplayDeviceManager displayManager;
+    for (DisplayDevice& device : displayManager.DisplayDevices)
     {
-        std::cout << '\t' << device.Manufacturer << ": " << device.DisplayName << std::endl;
+        std::cout << '\t' << device.GetManufacturer() << ": " << device.GetDisplayName() << std::endl;
     }
 
     std::cout << std::endl << "Detected audio devices:" << std::endl;
-    std::vector<AudioDevice> audioDevices = GetAudioDevices();
-    for (AudioDevice& device : audioDevices)
+    AudioDeviceManager audioManager;
+    for (AudioDevice& device : audioManager.AudioDevices)
     {
-        std::wcout << '\t' << device.DisplayName << std::endl;
+        std::wcout << '\t' << device.GetDisplayName() << std::endl;
     }
 }
 
@@ -38,9 +38,9 @@ int main()
 {
     try
     {
-        initialize();
-        run();
-        uninitialize();
+        Initialize();
+        Run();
+        Uninitialize();
     }
     catch (std::exception e)
     {

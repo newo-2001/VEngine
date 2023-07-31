@@ -1,10 +1,27 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <optional>
+#include <mmdeviceapi.h>
 
-struct AudioDevice
+class AudioDevice
 {
-    std::wstring DisplayName;
+public:
+    AudioDevice(IMMDevice* device);
+    ~AudioDevice();
+    const std::wstring& GetDisplayName() const;
+private:
+    mutable std::optional<std::wstring> m_displayName;
+    IMMDevice* m_device;
 };
 
-std::vector<AudioDevice> GetAudioDevices();
+class AudioDeviceManager
+{
+public:
+    AudioDeviceManager();
+    ~AudioDeviceManager();
+
+    std::vector<AudioDevice> AudioDevices;
+private:
+    IMMDeviceCollection* m_deviceCollection;
+};

@@ -1,51 +1,61 @@
 #include "AudioDevices.h"
 
 #include <Windows.h>
-#include <mmdeviceapi.h>
 #include <Functiondiscoverykeys_devpkey.h>
 
-void  GetAudioDevice(IMMDeviceCollection* collection, UINT index, AudioDevice& audioDevice)
-{
-    IMMDevice* device = nullptr;
-    HRESULT status = collection->Item(index, &device);
-    
-    IPropertyStore* properties = nullptr;
-    status = device->OpenPropertyStore(STGM_READ, &properties);
-
-    PROPVARIANT variant;
-    status = properties->GetValue(PKEY_Device_FriendlyName, &variant);
-
-    audioDevice.DisplayName = variant.vt == VT_EMPTY
-        ? L"Nameless Audio Device"
-        : variant.pwszVal;
-
-    properties->Release();
-    device->Release();
-}
-
-std::vector<AudioDevice> GetAudioDevices()
+AudioDeviceManager::AudioDeviceManager()
+    : m_deviceCollection(nullptr)
 {
     IMMDeviceEnumerator* enumerator = nullptr;
     HRESULT status = CoCreateInstance(
         __uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL,
         __uuidof(IMMDeviceEnumerator), (void**) &enumerator);
 
-    IMMDeviceCollection* collection = nullptr;
-    status = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &collection);
+    status = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &m_deviceCollection);
 
     UINT amount;
-    status = collection->GetCount(&amount);
+    status = m_deviceCollection->GetCount(&amount);
+    AudioDevices.reserve(amount);
 
-    std::vector<AudioDevice> devices;
-    for (UINT i = 0; i < amount; i++)
+    for (UINT index = 0; index < amount; index++)
     {
-        AudioDevice audioDevice;
-        GetAudioDevice(collection, i, audioDevice);
-        devices.push_back(audioDevice);
+        IMMDevice* device = nullptr;
+        HRESULT status = m_deviceCollection->Item(index, &device);
+        
+        AudioDevices.push_back(AudioDevice(device));
     }
 
-    collection->Release();
     enumerator->Release();
+}
 
-    return devices;
+AudioDeviceManager::~AudioDeviceManager()
+{
+    m_deviceCollection->Release();
+}
+
+AudioDevice::AudioDevice(IMMDevice* device)
+    : m_device(device) { }
+
+AudioDevice::~AudioDevice()
+{
+    m_device->Release();
+}
+
+const std::wstring& AudioDevice::GetDisplayName() const
+{
+    if (m_displayName) return m_displayName.value();
+
+    IPropertyStore* properties = nullptr;
+    HRESULT status = m_device->OpenPropertyStore(STGM_READ, &properties);
+
+    PROPVARIANT variant;
+    status = properties->GetValue(PKEY_Device_FriendlyName, &variant);
+    
+    m_displayName = variant.vt == VT_EMPTY
+        ? L"Nameless Audio Device"
+        : variant.pwszVal;
+
+    properties->Release();
+
+    return m_displayName.value();
 }

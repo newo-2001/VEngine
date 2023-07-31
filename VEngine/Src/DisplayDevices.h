@@ -1,11 +1,27 @@
 #pragma once
+
 #include <string>
 #include <vector>
+#include <optional>
+#include <Windows.h>
+#include <SetupAPI.h>
 
-struct DisplayDevice
+class DisplayDevice
 {
-    std::string Manufacturer;
-    std::string DisplayName;
+public:
+    DisplayDevice(HDEVINFO deviceInfo, SP_DEVINFO_DATA deviceInfoData);
+
+    std::string GetManufacturer() const;
+    const std::string& GetDisplayName() const;
+private:
+    mutable std::optional<std::string> m_displayName;
+    char m_edid[1024];
 };
 
-std::vector<DisplayDevice> GetDisplayDevices();
+class DisplayDeviceManager
+{
+public:
+    DisplayDeviceManager();
+    std::vector<DisplayDevice> DisplayDevices;
+};
+
