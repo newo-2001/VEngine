@@ -23,7 +23,9 @@ void Run()
     DisplayDeviceManager displayManager;
     for (DisplayDevice& device : displayManager.DisplayDevices)
     {
-        std::cout << '\t' << device.GetManufacturer() << ": " << device.GetDisplayName() << std::endl;
+        std::cout << "\t<" << device.GetDeviceId() << "> "
+            << device.GetManufacturer() << ": "
+            << device.GetDisplayName() << std::endl;
     }
 
     std::cout << std::endl << "Detected audio devices:" << std::endl;
