@@ -2,10 +2,10 @@
 
 #include <iostream>
 #include <vector>
+#include <objbase.h>
 
 #include "AudioDevices.h"
 #include "DisplayDevices.h"
-#include <objbase.h>
 
 void Initialize()
 {
@@ -17,10 +17,9 @@ void Uninitialize()
     CoUninitialize();
 }
 
-void Run()
+void ListConnectedDevices(DisplayDeviceManager& displayManager, AudioDeviceManager& audioManager)
 {
     std::cout << "Detected display devices:" << std::endl;
-    DisplayDeviceManager displayManager;
     for (DisplayDevice& device : displayManager.DisplayDevices)
     {
         std::cout << "\t<" << device.GetDeviceId() << "> "
@@ -29,11 +28,21 @@ void Run()
     }
 
     std::cout << std::endl << "Detected audio devices:" << std::endl;
-    AudioDeviceManager audioManager;
     for (AudioDevice& device : audioManager.AudioDevices)
     {
         std::wcout << '\t' << device.GetDisplayName() << std::endl;
     }
+}
+
+void Run()
+{
+    AudioDeviceManager audioManager;
+    DisplayDeviceManager displayManager;
+
+    ListConnectedDevices(displayManager, audioManager);
+
+    DisplayDevice device = displayManager.DisplayDevices[1];
+    device.Detach();
 }
 
 int main()

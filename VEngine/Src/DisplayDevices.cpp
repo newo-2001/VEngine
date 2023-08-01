@@ -93,8 +93,34 @@ std::string DisplayDevice::GetManufacturer() const
 DisplayDevice::DisplayDevice(std::string deviceId, std::array<char, 1024> edid)
     : m_deviceId(deviceId), m_edid(edid) { }
 
+void DisplayDevice::Detach()
+{
+    std::cout << "Detaching " << GetDisplayName() << " display" << std::endl;
+    
+    DEVMODE settings {};
+    settings.dmSize = sizeof(DEVMODE);
+    settings.dmDriverExtra = 0;
+    
+    const char* deviceId = m_deviceId.c_str();
+    EnumDisplaySettings(deviceId, ENUM_CURRENT_SETTINGS, &settings);
+
+    settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_POSITION;
+    settings.dmPelsWidth = 0;
+    settings.dmPelsHeight = 0;
+
+    long status = ChangeDisplaySettingsEx(deviceId, &settings, NULL, 0, NULL);
+    if (status != DISP_CHANGE_SUCCESSFUL)
+    {
+        std::cerr << "Failed to change display mode, status code: " << std::to_string(status) << std::endl;
+        return;
+    }
+
+    std::cout << "Successfully updated settings for " << GetDisplayName() << " display";
+}
+
 DisplayDeviceManager::DisplayDeviceManager()
 {
+    // For an explanation of this mess, see: https://ofekshilon.com/2014/06/19/reading-specific-monitor-dimensions#li-comment-8486
     DISPLAY_DEVICE adapter {};
     adapter.cb = sizeof(DISPLAY_DEVICE);
     
@@ -127,7 +153,7 @@ DisplayDeviceManager::DisplayDeviceManager()
 
             auto edid = GetEdid(deviceInfoList, deviceData);
 
-            DisplayDevices.push_back(DisplayDevice(adapter.DeviceName, edid));
+            DisplayDevices.push_back(DisplayDevice(deviceName, edid));
 
             free(interfaceDetails);
             break;

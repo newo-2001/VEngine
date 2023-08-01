@@ -15,6 +15,8 @@ public:
     std::string GetManufacturer() const;
     const std::string& GetDeviceId() const { return m_deviceId; };
     const std::string& GetDisplayName() const;
+
+    void Detach();
 private:
     mutable std::optional<std::string> m_displayName;
     std::array<char, 1024> m_edid;
