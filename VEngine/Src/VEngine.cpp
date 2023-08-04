@@ -4,8 +4,8 @@
 #include <vector>
 #include <objbase.h>
 
-#include "AudioDevices.h"
-#include "DisplayDevices.h"
+#include "Audio/AudioDevices.h"
+#include "Displays/DisplayConfiguration.h"
 
 void Initialize()
 {
@@ -17,14 +17,18 @@ void Uninitialize()
     CoUninitialize();
 }
 
-void ListConnectedDevices(DisplayDeviceManager& displayManager, AudioDeviceManager& audioManager)
+void ListConnectedDevices(DisplayConfiguration& displayConfig, AudioDeviceManager& audioManager)
 {
     std::cout << "Detected display devices:" << std::endl;
-    for (DisplayDevice& device : displayManager.DisplayDevices)
+    for (DisplayDevice& device : displayConfig.EnabledDisplays)
     {
-        std::cout << "\t<" << device.GetDeviceId() << "> "
-            << device.GetManufacturer() << ": "
-            << device.GetDisplayName() << std::endl;
+        std::wcout << '\t' << device.GetDisplayName() << " (" << std::to_wstring(device.GetTargetId()) << ")";
+        if (device.GetSourceId().has_value())
+        {
+            std::cout << " @ " << std::to_string(device.GetSourceId().value());
+        }
+
+        std::cout << std::endl;
     }
 
     std::cout << std::endl << "Detected audio devices:" << std::endl;
@@ -32,17 +36,27 @@ void ListConnectedDevices(DisplayDeviceManager& displayManager, AudioDeviceManag
     {
         std::wcout << '\t' << device.GetDisplayName() << std::endl;
     }
+
+    std::cout << std::endl;
 }
 
 void Run()
 {
     AudioDeviceManager audioManager;
-    DisplayDeviceManager displayManager;
+    DisplayConfiguration displayConfig = DisplayConfiguration::Active();
 
-    ListConnectedDevices(displayManager, audioManager);
+    ListConnectedDevices(displayConfig, audioManager);
 
-    DisplayDevice device = displayManager.DisplayDevices[1];
-    device.Detach();
+    std::vector<DisplayDevice> enabled;
+    
+    enabled.push_back(displayConfig.FindDisplayByName(L"G2460"));
+    
+    DisplayDevice device(41220, L"2470W", 1);
+    enabled.push_back(device);
+    
+    enabled.push_back(displayConfig.FindDisplayByName(L"Beyond TV"));
+
+    displayConfig.Apply();
 }
 
 int main()

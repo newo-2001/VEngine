@@ -21,9 +21,6 @@
     <ClCompile Include="Src\AudioDevices.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\DisplayDevices.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\AudioDevices.h">
