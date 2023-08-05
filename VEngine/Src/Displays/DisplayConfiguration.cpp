@@ -5,6 +5,30 @@
 #include <Windows.h>
 #include "../Utils.h"
 
+DISPLAYCONFIG_TARGET_DEVICE_NAME GetTagetName(const DISPLAYCONFIG_PATH_INFO& path)
+{
+    DISPLAYCONFIG_TARGET_DEVICE_NAME targetDeviceName {};
+    targetDeviceName.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+    targetDeviceName.header.adapterId = path.targetInfo.adapterId;
+    targetDeviceName.header.id = path.targetInfo.id;
+    targetDeviceName.header.size = sizeof(targetDeviceName);
+    DisplayConfigGetDeviceInfo(&targetDeviceName.header);
+    return targetDeviceName;
+}
+
+DISPLAYCONFIG_SOURCE_DEVICE_NAME GetSourceName(const DISPLAYCONFIG_PATH_INFO& path)
+{
+    DISPLAYCONFIG_SOURCE_DEVICE_NAME sourceDeviceName {};
+    sourceDeviceName.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+    sourceDeviceName.header.adapterId = path.sourceInfo.adapterId;
+    sourceDeviceName.header.id = path.sourceInfo.id;
+    sourceDeviceName.header.size = sizeof(sourceDeviceName);
+    DisplayConfigGetDeviceInfo(&sourceDeviceName.header);
+    return sourceDeviceName;
+
+
+}
+
 DisplayConfiguration::DisplayConfiguration() { }
 
 DisplayConfiguration::DisplayConfiguration(std::vector<DisplayDevice> enabledDisplays)
@@ -27,19 +51,8 @@ DisplayConfiguration DisplayConfiguration::Active()
     {
         DISPLAYCONFIG_PATH_INFO& path = paths[i];
 
-        DISPLAYCONFIG_TARGET_DEVICE_NAME targetDeviceName {};
-        targetDeviceName.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
-        targetDeviceName.header.adapterId = path.targetInfo.adapterId;
-        targetDeviceName.header.id = path.targetInfo.id;
-        targetDeviceName.header.size = sizeof(targetDeviceName);
-        status = DisplayConfigGetDeviceInfo(&targetDeviceName.header);
-
-        DISPLAYCONFIG_SOURCE_DEVICE_NAME sourceDeviceName {};
-        sourceDeviceName.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
-        sourceDeviceName.header.adapterId = path.sourceInfo.adapterId;
-        sourceDeviceName.header.id = path.sourceInfo.id;
-        sourceDeviceName.header.size = sizeof(sourceDeviceName);
-        status = DisplayConfigGetDeviceInfo(&sourceDeviceName.header);
+        DISPLAYCONFIG_TARGET_DEVICE_NAME targetDeviceName = GetTagetName(path);
+        DISPLAYCONFIG_SOURCE_DEVICE_NAME sourceDeviceName = GetSourceName(path);
 
         DisplayDevice display(
             path.targetInfo.id,
@@ -79,14 +92,18 @@ void DisplayConfiguration::Apply()
         for (size_t i = 0; i < pathAmount; i++)
         {
             DISPLAYCONFIG_PATH_INFO& path = paths[i];
-
             if (device.GetTargetId() == path.targetInfo.id
                 && device.GetSourceId().value() == path.sourceInfo.id)
             {
-                std::wcout << std::format(L"[INFO] Enabling display {}", device.GetDisplayName()) << std::endl;
-                path.flags |= DISPLAYCONFIG_PATH_ACTIVE;
-                updated[i] = true;
                 found = true;
+                updated[i] = true;
+
+                if (!(path.flags & DISPLAYCONFIG_PATH_ACTIVE))
+                {
+                    std::wcout << std::format(L"[INFO] Enabling display {}", device.GetDisplayName()) << std::endl;
+                    path.flags |= DISPLAYCONFIG_PATH_ACTIVE;
+                }
+
                 break;
             }
         }
@@ -111,9 +128,11 @@ void DisplayConfiguration::Apply()
 
     delete[] updated;
 
-    constexpr UINT32 FLAGS = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG;
+    constexpr UINT32 FLAGS = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_ALLOW_CHANGES;
     status = SetDisplayConfig(pathAmount, paths, modeAmount, modes, FLAGS);
-
+    if (status != ERROR_SUCCESS)
+        throw std::exception("Failed to apply configuration");
+    
     delete[] paths;
     delete[] modes;
 }

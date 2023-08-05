@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Arguments.cpp" />
     <ClCompile Include="Src\Configuration\DeviceConfiguration.cpp" />
     <ClCompile Include="Src\Displays\DisplayConfiguration.cpp" />
     <ClCompile Include="Src\Configuration\DeviceConfigurationParser.cpp" />
@@ -140,6 +141,7 @@
     <ClCompile Include="Src\VEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Arguments.h" />
     <ClInclude Include="Src\Audio\AudioDevices.h" />
     <ClInclude Include="Src\Configuration\DeviceConfiguration.h" />
     <ClInclude Include="Src\Displays\DisplayConfiguration.h" />

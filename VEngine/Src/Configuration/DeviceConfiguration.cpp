@@ -8,3 +8,8 @@ void DeviceConfiguration::Print() const
 {
     Displays.Print();
 }
+
+void DeviceConfiguration::Apply()
+{
+    Displays.Apply();
+}

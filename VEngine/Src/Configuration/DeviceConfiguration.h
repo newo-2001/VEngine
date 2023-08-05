@@ -9,6 +9,7 @@ public:
     DeviceConfiguration(std::string name, DisplayConfiguration displayConfig);
 
     void Print() const;
+    void Apply();
 
     const std::string& GetName() const { return m_name; }
 

@@ -1,12 +1,13 @@
 #include <iostream>
 #include <vector>
-#include <objbase.h>
+#include <format>
 
 #include "Audio/AudioDevices.h"
 #include "Displays/DisplayConfiguration.h"
 #include "Configuration/DeviceConfiguration.h"
 #include "Configuration/DeviceConfigurationParser.h"
 #include "Utils.h"
+#include "Arguments.h"
 
 void Initialize()
 {
@@ -25,29 +26,58 @@ DeviceConfigurationMap ReadConfigurationsFromFile(const std::string& filePath)
     return parser->Parse(content);
 }
 
-void Run()
+void ApplyConfiguration(const std::string& configurationFilePath, const std::string& configurationName)
+{
+    DeviceConfigurationMap configurations = ReadConfigurationsFromFile(configurationFilePath);
+    if (!configurations.contains(configurationName))
+    {
+        throw std::exception(std::format("Undefined configuration: {}", configurationName).c_str());
+    }
+
+    DeviceConfiguration& config = configurations.at(configurationName);
+    config.Apply();
+}
+
+void ShowHelp()
+{
+    std::cout << "Available arguments:" << std::endl
+        << "--help: Show this menu" << std::endl
+        << "-l: List all currently active devices" << std::endl
+        << "-c: The name of the configuration to switch to" << std::endl
+        << "-f: The path to the configuration file (default: devices.conf)" << std::endl;
+}
+
+void ListActiveDevices()
 {
     DisplayConfiguration activeConfig = DisplayConfiguration::Active();
 
-    std::cout << "Active display configuration:" << std::endl;
+    std::cout << "Active configuration:" << std::endl;
     activeConfig.Print();
     std::cout << std::endl;
+}
 
-    DeviceConfigurationMap configurations = ReadConfigurationsFromFile("deviceconfigurations.conf");
-    for (const auto& [name, configuration] : configurations)
+void Run(const Arguments& arguments)
+{
+    switch (arguments.Action)
     {
-        std::cout << '[' << name << ']' << std::endl;
-        configuration.Print();
-        std::cout << std::endl;
+    case Action::ListActiveDevices:
+        return ListActiveDevices();
+    case Action::ShowHelp:
+        return ShowHelp();
+    case Action::ApplyConfiguration:
+        const std::string& configurationName = arguments.Configuration.value();
+        return ApplyConfiguration(arguments.ConfigurationFilePath, configurationName);
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
     try
     {
+        Arguments arguments(argc, argv);
+
         Initialize();
-        Run();
+        Run(arguments);
         Uninitialize();
     }
     catch (std::exception e)
