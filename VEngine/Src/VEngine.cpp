@@ -1,11 +1,12 @@
-#pragma comment (lib, "Setupapi.lib")
-
 #include <iostream>
 #include <vector>
 #include <objbase.h>
 
 #include "Audio/AudioDevices.h"
 #include "Displays/DisplayConfiguration.h"
+#include "Configuration/DeviceConfiguration.h"
+#include "Configuration/DeviceConfigurationParser.h"
+#include "Utils.h"
 
 void Initialize()
 {
@@ -17,46 +18,28 @@ void Uninitialize()
     CoUninitialize();
 }
 
-void ListConnectedDevices(DisplayConfiguration& displayConfig, AudioDeviceManager& audioManager)
+DeviceConfigurationMap ReadConfigurationsFromFile(const std::string& filePath)
 {
-    std::cout << "Detected display devices:" << std::endl;
-    for (DisplayDevice& device : displayConfig.EnabledDisplays)
-    {
-        std::wcout << '\t' << device.GetDisplayName() << " (" << std::to_wstring(device.GetTargetId()) << ")";
-        if (device.GetSourceId().has_value())
-        {
-            std::cout << " @ " << std::to_string(device.GetSourceId().value());
-        }
-
-        std::cout << std::endl;
-    }
-
-    std::cout << std::endl << "Detected audio devices:" << std::endl;
-    for (AudioDevice& device : audioManager.AudioDevices)
-    {
-        std::wcout << '\t' << device.GetDisplayName() << std::endl;
-    }
-
-    std::cout << std::endl;
+    std::string content = ReadFileToString(filePath);
+    std::unique_ptr<IDeviceConfigurationParser<std::string>> parser = std::make_unique<DeviceConfigurationParser>();
+    return parser->Parse(content);
 }
 
 void Run()
 {
-    AudioDeviceManager audioManager;
-    DisplayConfiguration displayConfig = DisplayConfiguration::Active();
+    DisplayConfiguration activeConfig = DisplayConfiguration::Active();
 
-    ListConnectedDevices(displayConfig, audioManager);
+    std::cout << "Active display configuration:" << std::endl;
+    activeConfig.Print();
+    std::cout << std::endl;
 
-    std::vector<DisplayDevice> enabled;
-    
-    enabled.push_back(displayConfig.FindDisplayByName(L"G2460"));
-    
-    DisplayDevice device(41220, L"2470W", 1);
-    enabled.push_back(device);
-    
-    enabled.push_back(displayConfig.FindDisplayByName(L"Beyond TV"));
-
-    displayConfig.Apply();
+    DeviceConfigurationMap configurations = ReadConfigurationsFromFile("deviceconfigurations.conf");
+    for (const auto& [name, configuration] : configurations)
+    {
+        std::cout << '[' << name << ']' << std::endl;
+        configuration.Print();
+        std::cout << std::endl;
+    }
 }
 
 int main()

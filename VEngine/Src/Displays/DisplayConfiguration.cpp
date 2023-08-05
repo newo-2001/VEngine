@@ -1,8 +1,11 @@
 #include "DisplayConfiguration.h"
 #include <format>
 #include <iostream>
+#include <sstream>
 #include <Windows.h>
 #include "../Utils.h"
+
+DisplayConfiguration::DisplayConfiguration() { }
 
 DisplayConfiguration::DisplayConfiguration(std::vector<DisplayDevice> enabledDisplays)
     : EnabledDisplays(enabledDisplays) { }
@@ -91,6 +94,8 @@ void DisplayConfiguration::Apply()
         if (!found) throw std::exception("Supplied display path was not found");
     }
 
+    DisplayConfiguration active = DisplayConfiguration::Active();
+
     for (size_t i = 0; i < pathAmount; i++)
     {
         if (updated[i]) continue;
@@ -98,7 +103,7 @@ void DisplayConfiguration::Apply()
         auto& path = paths[i];
         if (path.flags & DISPLAYCONFIG_PATH_ACTIVE)
         {
-            std::wstring displayName = FindDisplayByTargetId(path.targetInfo.id).GetDisplayName();
+            std::wstring displayName = active.FindDisplayByTargetId(path.targetInfo.id).GetDisplayName();
             std::wcout << std::format(L"[INFO] Disabling display {}", displayName) << std::endl;
             path.flags &= ~DISPLAYCONFIG_PATH_ACTIVE;
         }
@@ -106,7 +111,7 @@ void DisplayConfiguration::Apply()
 
     delete[] updated;
 
-    UINT32 FLAGS = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG;
+    constexpr UINT32 FLAGS = SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG;
     status = SetDisplayConfig(pathAmount, paths, modeAmount, modes, FLAGS);
 
     delete[] paths;
@@ -136,4 +141,19 @@ const DisplayDevice& DisplayConfiguration::FindDisplayByTargetId(unsigned int ta
         throw std::exception(std::format("Display with targetId {} does not exist", std::to_string(targetId)).c_str());
 
     return *display;
+}
+
+void DisplayConfiguration::Print() const
+{
+    std::cout << "Display devices:" << std::endl;
+    for (const DisplayDevice& device : EnabledDisplays)
+    {
+        std::wcout << '\t' << device.GetDisplayName() << " (" << std::to_wstring(device.GetTargetId()) << ")";
+        if (device.GetSourceId().has_value())
+        {
+            std::cout << " @ " << std::to_string(device.GetSourceId().value());
+        }
+
+        std::cout << std::endl;
+    }
 }

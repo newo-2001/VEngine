@@ -6,15 +6,16 @@
 class DisplayConfiguration
 {
 public:
+    DisplayConfiguration();
     DisplayConfiguration(std::vector<DisplayDevice> enabledDisplays);
 
-    static DisplayConfiguration Parse(std::string config);
     static DisplayConfiguration Active();
 
     const DisplayDevice& FindDisplayByTargetId(unsigned int targetId) const;
     const DisplayDevice& FindDisplayByName(std::wstring displayName) const;
 
     void Apply();
+    void Print() const;
 
     std::vector<DisplayDevice> EnabledDisplays;
 };

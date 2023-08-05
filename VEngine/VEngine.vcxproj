@@ -131,14 +131,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Configuration\DeviceConfiguration.cpp" />
     <ClCompile Include="Src\Displays\DisplayConfiguration.cpp" />
+    <ClCompile Include="Src\Configuration\DeviceConfigurationParser.cpp" />
     <ClCompile Include="Src\Displays\DisplayDevice.cpp" />
     <ClCompile Include="Src\Audio\AudioDevices.cpp" />
+    <ClCompile Include="Src\Utils.cpp" />
     <ClCompile Include="Src\VEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\AudioDevices.h" />
+    <ClInclude Include="Src\Configuration\DeviceConfiguration.h" />
     <ClInclude Include="Src\Displays\DisplayConfiguration.h" />
+    <ClInclude Include="Src\Configuration\DeviceConfigurationParser.h" />
     <ClInclude Include="Src\Displays\DisplayDevice.h" />
     <ClInclude Include="Src\Utils.h" />
   </ItemGroup>

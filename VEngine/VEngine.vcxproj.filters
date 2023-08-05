@@ -18,16 +18,46 @@
     <ClCompile Include="Src\VEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\AudioDevices.cpp">
+    <ClCompile Include="Src\Displays\DisplayConfiguration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Displays\DisplayDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\AudioDevices.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Configuration\DeviceConfigurationParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Configuration\DeviceConfiguration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\AudioDevices.h">
+    <ClInclude Include="Src\Audio\AudioDevices.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DisplayDevices.h">
+    <ClInclude Include="Src\Displays\DisplayConfiguration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Displays\DisplayDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Configuration\DeviceConfigurationParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Configuration\DeviceConfiguration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="deviceconfigurations.conf" />
   </ItemGroup>
 </Project>
