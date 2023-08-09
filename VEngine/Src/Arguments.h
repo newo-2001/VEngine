@@ -14,7 +14,7 @@ struct Arguments
 public:
     Arguments(int argc, char** argv);
 
-    std::string ConfigurationFilePath = "devices.conf";
+    std::string ConfigurationFilePath;
     std::optional<std::string> Configuration;
     Action Action;
 };

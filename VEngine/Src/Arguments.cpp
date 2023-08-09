@@ -2,9 +2,23 @@
 #include <iostream>
 #include <vector>
 #include <format>
+#include <filesystem>
+#include <ShlObj.h>
+
+namespace fs = std::filesystem;
+
+fs::path GetDefaultConfigPath()
+{
+    char profilePath[MAX_PATH];
+    SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, profilePath);
+
+    return fs::path(profilePath) / fs::path("devices.conf");
+}
 
 Arguments::Arguments(int argc, char** argv)
+    : ConfigurationFilePath(GetDefaultConfigPath().string())
 {
+
     for (size_t i = 1; i < argc; i++)
     {
         std::string token = argv[i];
