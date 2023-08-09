@@ -3,22 +3,6 @@
 #include <vector>
 #include <format>
 
-std::vector<std::string> Tokenize(std::string arguments)
-{
-    std::vector<std::string> tokens;
-
-    size_t from = 0, to;
-    while ((to = arguments.find(" ", from)) != std::string::npos)
-    {
-        std::string token = arguments.substr(from, to - from);
-        tokens.push_back(token);
-
-        from = to + 1;
-    }
-
-    return tokens;
-}
-
 Arguments::Arguments(int argc, char** argv)
 {
     for (size_t i = 1; i < argc; i++)

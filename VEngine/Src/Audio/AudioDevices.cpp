@@ -23,6 +23,7 @@ AudioDeviceManager::AudioDeviceManager()
         HRESULT status = m_deviceCollection->Item(index, &device);
         
         AudioDevices.push_back(AudioDevice(device));
+        device->Release();
     }
 
     enumerator->Release();
@@ -33,29 +34,35 @@ AudioDeviceManager::~AudioDeviceManager()
     m_deviceCollection->Release();
 }
 
-AudioDevice::AudioDevice(IMMDevice* device)
-    : m_device(device) { }
-
-AudioDevice::~AudioDevice()
+std::wstring GetIdForDevice(IMMDevice* device)
 {
-    m_device->Release();
+    wchar_t* id = nullptr;
+    device->GetId(&id);
+    return std::wstring(id);
 }
 
-const std::wstring& AudioDevice::GetDisplayName() const
+std::wstring GetDisplayNameForDevice(IMMDevice* device)
 {
-    if (m_displayName) return m_displayName.value();
-
     IPropertyStore* properties = nullptr;
-    HRESULT status = m_device->OpenPropertyStore(STGM_READ, &properties);
+    HRESULT status = device->OpenPropertyStore(STGM_READ, &properties);
 
     PROPVARIANT variant;
     status = properties->GetValue(PKEY_Device_FriendlyName, &variant);
     
-    m_displayName = variant.vt == VT_EMPTY
+    std::wstring displayName = variant.vt == VT_EMPTY
         ? L"Nameless Audio Device"
         : variant.pwszVal;
 
     properties->Release();
 
-    return m_displayName.value();
+    return displayName;
 }
+
+AudioDevice::AudioDevice(IMMDevice* device)
+{
+    m_displayName = GetDisplayNameForDevice(device);
+    m_id = GetIdForDevice(device);
+}
+
+AudioDevice::AudioDevice(std::wstring name, std::wstring id)
+    : m_id(id), m_displayName(name) { }

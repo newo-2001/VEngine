@@ -49,11 +49,18 @@ void ShowHelp()
 
 void ListActiveDevices()
 {
-    DisplayConfiguration activeConfig = DisplayConfiguration::Active();
+    DisplayConfiguration displays = DisplayConfiguration::Active();
 
     std::cout << "Active configuration:" << std::endl;
-    activeConfig.Print();
+    displays.Print();
     std::cout << std::endl;
+
+    std::cout << "Connected audio devices:" << std::endl;
+    AudioDeviceManager audioDeviceManager;
+    for (const auto& audioDevice : audioDeviceManager.AudioDevices)
+    {
+        std::wcout << '\t' << audioDevice.GetDisplayName() << " (" << audioDevice.GetId() << ')' << std::endl;
+    }
 }
 
 void Run(const Arguments& arguments)

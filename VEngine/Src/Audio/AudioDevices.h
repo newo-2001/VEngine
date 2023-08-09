@@ -8,11 +8,13 @@ class AudioDevice
 {
 public:
     AudioDevice(IMMDevice* device);
-    ~AudioDevice();
-    const std::wstring& GetDisplayName() const;
+    AudioDevice(std::wstring name, std::wstring id);
+
+    const std::wstring& GetDisplayName() const { return m_displayName; }
+    const std::wstring& GetId() const { return m_id; }
 private:
-    mutable std::optional<std::wstring> m_displayName;
-    IMMDevice* m_device;
+    std::wstring m_displayName;
+    std::wstring m_id;
 };
 
 class AudioDeviceManager

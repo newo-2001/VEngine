@@ -35,7 +35,43 @@ DisplayConfiguration ParseDisplaysBlock(std::istringstream& ss)
     throw std::exception("Expected end of displays block");
 }
 
-DeviceConfiguration ParseConfigurationBlock(std::istringstream& ss)
+AudioDevice ParseAudioDevice(const std::string& device)
+{
+    std::smatch match;
+    std::regex_match(device, match, std::regex("^(.+?), ?(.+)$"));
+    if (match.size() != 3) throw std::exception("Expected audio device");
+
+    std::wstring name = StringToWString(match[1]);
+    std::wstring id = StringToWString(match[2]);
+    
+    return AudioDevice(name, id);
+}
+
+std::optional<AudioConfiguration> ParseAudioBlock(std::istringstream& ss)
+{
+    std::optional<AudioDevice> primaryOutputDevice;
+
+    std::string line;
+    while (std::getline(ss, line))
+    {
+        if (line == "[/Audio]")
+        {
+            return primaryOutputDevice.has_value()
+                ? std::make_optional(AudioConfiguration(primaryOutputDevice.value()))
+                : std::nullopt;
+        } else if (line.starts_with("Primary Output Device = "))
+        {
+            if (primaryOutputDevice.has_value())
+                throw std::exception("Primary Output Device declared more than once");
+
+            primaryOutputDevice = ParseAudioDevice(line.substr(sizeof("Primary OutputDevice = ")));
+        }
+    }
+
+    throw std::exception("Expected end of audio block");
+}
+
+void ParseConfigurationBlock(DeviceConfiguration& configuration, std::istringstream& ss)
 {
     std::string line;
 
@@ -45,25 +81,26 @@ DeviceConfiguration ParseConfigurationBlock(std::istringstream& ss)
     std::regex_match(line, match, std::regex("^<([^<>]+)>$"));
 
     if (match.size() != 2) throw std::exception("Expected start of a new configuration block");
-    std::string name = match[1];
-
-    DisplayConfiguration displayConfiguration;
+    configuration.Name = match[1];
 
     while (std::getline(ss, line))
     {
         if (line == "[Displays]")
         {
-            displayConfiguration = ParseDisplaysBlock(ss);
-        } else if (line == std::format("</{}>", name))
+            configuration.Displays = ParseDisplaysBlock(ss);
+        } else if (line == "[Audio]")
         {
-            break;
+            configuration.Audio = ParseAudioBlock(ss);
+        } else if (line == std::format("</{}>", configuration.Name))
+        {
+            return;
         } else
         {
-            throw std::exception("Expected displays block or end of configuration block");
+            throw std::exception("Expected displays block, audio block or end of configuration block");
         }
     }
 
-    return DeviceConfiguration(name, displayConfiguration);
+    throw std::exception("Expected end of configuration block");
 }
 
 void StripBlankLines(std::string& data)
@@ -94,8 +131,9 @@ DeviceConfigurationMap DeviceConfigurationParser::Parse(const std::string& data)
 
     while (!ss.eof())
     {
-        DeviceConfiguration configuration = ParseConfigurationBlock(ss);
-        configurations.insert({ configuration.GetName(), configuration });
+        DeviceConfiguration configuration;
+        ParseConfigurationBlock(configuration, ss);
+        configurations.insert({ configuration.Name, configuration });
     }
     
     return configurations;
